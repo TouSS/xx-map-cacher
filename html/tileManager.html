@@ -1,0 +1,395 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>地图瓦片管理</title>
+    <script type="text/javascript" src="js/vue/vue.min.js"></script>
+    <script type="text/javascript" src="js/jQuery/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="js/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="js/bootstrap/js/bootstrap.min.js"></script>
+    <link href="js/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <style type="text/css">
+        body {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+        }
+
+        #mapContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        #districtContainer {
+            position: absolute;
+            top: 0px;
+            width: 100%;
+            height: 50px;
+            background: white;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            padding: 5px;
+        }
+
+        #districtContainer select {
+            width: 150px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .modal-dialog {
+            width: 600px;
+            margin: 10% auto;
+        }
+        .table {
+            margin-bottom: 0 !important;
+            width: 75%;
+        }
+        .table td {
+            border: 0 !important;
+        }
+        .table .left {
+            text-align: left;
+            color: blue;
+        }
+
+        .table .right {
+            text-align: right;
+            font-weight: 900;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mapContainer"></div>
+    <div id="districtContainer" class="form-inline">
+        <div class="form-group">
+            <label>行政区</label>
+
+            <select class="form-control" v-model="province" v-on:change='getCitys'>
+                <option value="">--请选择--</option>
+                <option v-for="province in provinces" v-bind:value="province.adcode">
+                    {{province.name}}
+                </option>
+            </select>
+            <label>&rarr;</label>
+            <select class="form-control" v-model="city" v-on:change='getDistricts'>
+                <option value="">--请选择--</option>
+                <option v-for="city in citys" v-bind:value="city.adcode">
+                    {{city.name}}
+                </option>
+            </select>
+            <label>&rarr;</label>
+            <select class="form-control" v-model="district" v-on:change="getDistrict">
+                <option value="">--请选择--</option>
+                <option v-for="district in districts" v-bind:value="district.adcode">
+                    {{district.name}}
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>缩放等级</label>
+            <select class="form-control" v-model="zoom" v-on:change="setZoom()">
+                <option v-for="zoom in zooms" v-bind:value="zoom">
+                    {{zoom}}
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <button class="btn btn-default" v-on:click="download()" id="btn_download">下载</button>
+            <button class="btn btn-default" v-on:click="status()" data-toggle="modal" href="#status">查看</button>
+        </div>
+    </div>
+    <div class="modal fade" id="status" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        地图瓦片下载状态
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td class="right">状态</td>
+                                <td class="left">{{status.status}}</td>
+                            </tr>
+                            <tr>
+                                <td class="right">瓦片总量</td>
+                                <td class="left">{{status.total}}</td>
+                            </tr>
+                            <tr>
+                                <td class="right">缓存完成数</td>
+                                <td class="left">{{status.completed}}</td>
+                            </tr>
+                            <tr>
+                                <td class="right">缓存失败数</td>
+                                <td class="left">{{status.failure}}</td>
+                            </tr>
+                            <tr>
+                                <td class="right">开始时间</td>
+                                <td class="left">{{status.startTime}}</td>
+                            </tr>
+                            <tr>
+                                <td class="right">结束时间</td>
+                                <td class="left">{{status.endTime}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=69ff27d453bf85778147e9212c0a7c95&plugin=AMap.DistrictSearch,AMap.Scale"></script>
+    <script type="text/javascript">
+        //连接到socket服务器
+        var socket = initSocket();
+        //连接服务器
+        function initSocket() {
+            var socket = io.connect("http://192.168.1.129:3000/tile");
+            socket.on('status', (data) => {
+                data.startTime = new Date(data.startTime).toLocaleString();
+                if(data.endTime) {
+                    data.status = '瓦片已完成缓存.';
+                    data.endTime = new Date(data.endTime).toLocaleString();
+                    enableDownloadBtn();
+                } else {
+                    data.status = '瓦片正在缓存...';
+                    data.endTime = '未结束';
+                }
+                status.status = data;
+            });
+            socket.on('msg', (data) => {
+                alert(data.msg);
+            });
+            return socket;
+        }
+        //发送数据
+        function send(method, data) {
+            socket.emit(method, data);
+        }
+
+        var district = new Vue({
+            el: '#districtContainer',
+            data: {
+                province: '',
+                city: '',
+                district: '',
+                zoom: 1,
+                provinces: [],
+                citys: [],
+                districts: [],
+                zooms: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+            },
+            methods: {
+                getCitys: function (e) {
+                    if (this.province) {
+                        getDistricts(this.province, 'citys');
+                        this.city = '';
+                    }
+                },
+                getDistricts: function (e) {
+                    if (this.city) {
+                        getDistricts(this.city, 'districts');
+                        this.district = '';
+                    }
+                },
+                getDistrict: function (e) {
+                    if (this.district) {
+                        getDistricts(this.district, 'district');
+                    }
+                },
+                setZoom: function (e) {
+                    map.setZoom(this.zoom);
+                    if (this.districtCube) {
+                        this.districtCube.zoom = this.zoom;
+                    }
+                },
+                download: function (e) {
+                    downloadTiles(this.districtCube);
+                },
+                status: function (e) {
+                    
+                }
+            }
+        });
+
+        var status = new Vue({
+            el: '#status',
+            data: {
+                status: {
+                    status: 'No task ...'
+                }
+            },
+            methods: {}
+        });
+
+        var map = new AMap.Map("mapContainer", {
+            resizeEnable: true,
+            features: ['bg', 'point', 'building', 'road'],
+            zoom: 1
+        });
+        //加载比例尺插件
+        map.addControl(new AMap.Scale());
+
+        //行政区搜索
+        var districtSearch = new AMap.DistrictSearch({
+            level: 'country',
+            showbiz: false,
+            extensions: 'all',
+            subdistrict: 1
+        });
+
+        //初始获取省份数据
+        getDistricts('100000', 'provinces');
+
+        /**
+         * 获取行政区信息
+         */
+        function getDistricts(adcode, districtLevel) {
+            if ('provinces' != districtLevel && 'citys' != districtLevel && 'districts' != districtLevel && 'district' !=
+                districtLevel) {
+                alert('未知行政等级,无法查询下属区域信息.');
+                return;
+            }
+            districtSearch.search(adcode, function (status, result) {
+                if ('complete' == status) {
+                    if ('provinces' == districtLevel) {
+                        district.provinces = result.districtList[0].districtList;
+                    } else if ('citys' == districtLevel) {
+                        district.citys = result.districtList[0].districtList;
+                    } else if ('districts' == districtLevel) {
+                        district.districts = result.districtList[0].districtList;
+                    }
+                    //初始获得省份时不操作
+                    if ('100000' != adcode) {
+                        district.districtCube = {
+                            cut: drawBoundaries(result.districtList[0].center, result.districtList[0].boundaries),
+                            adcode: result.districtList[0].adcode,
+                            name: result.districtList[0].name,
+                            zoom: district.zoom
+                        }
+                    }
+                } else {
+                    alert("获取行政区信息失败.")
+                }
+            });
+        }
+
+        //行政区边界线
+        var boundaryPolylines = [];
+
+        /**
+         * 行政区边界线标记
+         */
+        function drawBoundaries(center, boundaries) {
+            map.remove(boundaryPolylines);
+            boundaryPolylines = [];
+            for (var i in boundaries) {
+                boundaryPolylines.push(
+                    new AMap.Polyline({
+                        map: map,
+                        strokeWeight: 4,
+                        path: boundaries[i],
+                        strokeColor: '#0000CD',
+                        isOutline: true,
+                        outlineColor: '#AFEEEE',
+                        borderWeight: 2
+                    }));
+            }
+            map.setCenter(center);
+            //返回外切方形西北点和东南点
+            return getWNandES(boundaries);
+        }
+
+        /**
+         * 行政区方块切点
+         */
+        function getWNandES(boundaries) {
+            var max_lng, max_lat, min_lng, min_lat;
+            var ll;
+            for (var i in boundaries) {
+                for (var j in boundaries[i]) {
+                    ll = boundaries[i][j];
+                    if (i == 0 && j == 0) {
+                        max_lat = min_lat = ll.getLat();
+                        max_lng = min_lng = ll.getLng();
+                        continue;
+                    }
+
+                    if (ll.getLat() > max_lat) {
+                        max_lat = ll.getLat();
+                    }
+                    if (ll.getLat() < min_lat) {
+                        min_lat = ll.getLat();
+                    }
+                    if (ll.getLng() > max_lng) {
+                        max_lng = ll.getLng();
+                    }
+                    if (ll.getLng() < min_lng) {
+                        min_lng = ll.getLng();
+                    }
+                }
+            }
+            return {
+                wn: [min_lng, max_lat],
+                es: [max_lng, min_lat]
+            };
+        }
+
+        /**
+         * 下载地图瓦片
+         */
+        function downloadTiles(districtCube) {
+            if (!districtCube) {
+                alert('神秘海域 ~~');
+                return;
+            }
+            disableDownloadBtn();
+            // console.log(districtCube);
+            // $.ajax({
+            //     type: "POST",
+            //     url: "/tile/download",
+            //     contentType: "application/json; charset=utf-8",
+            //     data: JSON.stringify(districtCube),
+            //     dataType: "json",
+            //     success: function (res) {
+            //         alert(res.msg);
+            //     },
+            //     error: function (event, xhr, error) {
+            //         console.error(error);
+            //         alert('下载请求提交失败, Why --!');
+            //     }
+            // });
+
+            send('cacheTiles', districtCube);
+            setTimeout(() => {
+                $('#status').modal('show');
+            }, 1000);
+        }
+
+        function disableDownloadBtn() {
+            $('#btn_download').attr("disabled", true);
+        }
+        function enableDownloadBtn() {
+            $('#btn_download').attr("disabled", false);
+        }
+    </script>
+
+</body>
+
+</html>

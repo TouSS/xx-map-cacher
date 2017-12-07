@@ -1,0 +1,31 @@
+{
+  "name": "xx-map",
+  "version": "1.0.0",
+  "description": "An offline map server, add by xx.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TouSS/xx-map-cacher.git"
+  },
+  "keywords": [
+    "node",
+    "koa",
+    "offline",
+    "mapServer"
+  ],
+  "author": "XX.D",
+  "license": "MIT",
+  "dependencies": {
+    "koa": "^2.4.1",
+    "koa-bodyparser": "^4.2.0",
+    "koa-onerror": "^4.0.0",
+    "koa-router": "^7.3.0",
+    "koa-static": "^4.0.2",
+    "socket.io": "^2.0.4",
+    "sqlite3": "^3.1.13"
+  }
+}

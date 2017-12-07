@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>D.MAP</title>
+    <link rel="stylesheet" href="js/leaflet/leaflet.css" />
+    <script type="text/javascript" src="js/leaflet/leaflet.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+        }
+
+        #mapContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mapContainer"></div>
+    <script type="text/javascript">
+        //创建map容器
+        var map = L.map('mapContainer').setView([30.177188, 107.989136], 9);
+        //添加map瓦片
+        L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
+            attribution: 'Imagery &copy; <a href="http://ditu.amap.com/">高德</a>',
+            maxZoom: 18,
+            id: 'map.hz'
+        }).addTo(map);
+    </script>
+</body>
+
+</html>
