@@ -19,6 +19,9 @@ tileRouter.get('/tile/:x/:y/:z', async (ctx, next) => {
 //缓存失败地图瓦片
 .get('/tile/failure', (ctx, next) => {
 
+})
+.get('/', (ctx, next) => {
+    ctx.redirect('/map.html');
 });
 
 module.exports = tileRouter.routes();
