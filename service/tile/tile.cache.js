@@ -136,9 +136,11 @@ module.exports = () => {
                             throw new Error('500: download tile failed .');
                         }
                     } catch (error) {
+                        //缓存失败计数
+                        session.failure++;
                         //缓存瓦片失败处理,保存错误记录
                         logger.error(error);
-
+                        
                         await failures._save(conn, {
                             x: i,
                             y: j,
@@ -150,8 +152,7 @@ module.exports = () => {
                             add_date: add_date,
                             update_date: update_date
                         });
-                        //缓存失败计数
-                        session.failure++;
+                        
                     }
                     //计数器累加，每10次报告状态
                     session.counter++;

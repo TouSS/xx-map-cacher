@@ -20,6 +20,7 @@
             left: 0;
             right: 0;
             bottom: 0;
+            background-color: white;
         }
     </style>
 </head>
@@ -29,8 +30,8 @@
     <script type="text/javascript">
         //创建map容器
         var map = L.map('mapContainer',{
-            minZoom:12,
-            maxZoom:12
+            minZoom:9,
+            maxZoom:15
         }).setView([30.266816, 120.065213], 12);
         //添加map瓦片
         L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
