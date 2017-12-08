@@ -146,7 +146,7 @@ module.exports = () => {
                             adcode: districtCube.adcode,
                             district: districtCube.name,
                             failed_times: 1,
-                            failed_reason: '' + err,
+                            failed_reason: '' + error,
                             add_date: add_date,
                             update_date: update_date
                         });
