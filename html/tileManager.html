@@ -15,6 +15,8 @@
             height: 100%;
             width: 100%;
             position: absolute;
+            font-family: '微软雅黑';
+            font-size: 12px;
         }
 
         #mapContainer {
@@ -37,22 +39,25 @@
         }
 
         #districtContainer select {
-            width: 150px;
-            margin-left: 10px;
-            margin-right: 10px;
+            width: 120px;
+            margin-left: 5px;
+            margin-right: 5px;
         }
 
         .modal-dialog {
             width: 600px;
             margin: 10% auto;
         }
+
         .table {
             margin-bottom: 0 !important;
             width: 75%;
         }
+
         .table td {
             border: 0 !important;
         }
+
         .table .left {
             text-align: left;
             color: blue;
@@ -61,6 +66,13 @@
         .table .right {
             text-align: right;
             font-weight: 900;
+        }
+
+        .checkboxs {
+            display: inline-block;
+        }
+        .none {
+            display: none !important;
         }
     </style>
 </head>
@@ -95,16 +107,35 @@
 
         <div class="form-group">
             <label>缩放等级</label>
-            <select class="form-control" v-model="zoom" v-on:change="setZoom()">
+            <select class="form-control" v-model="zoom" v-on:change="setZoom()" style="width: 70px;">
                 <option v-for="zoom in zooms" v-bind:value="zoom">
                     {{zoom}}
                 </option>
             </select>
         </div>
 
+        <div class="form-group none">
+            <label>地图类型</label>
+            <div class="checkboxs">
+                <input type="checkbox">地图影像
+                <input type="checkbox">矢量地图
+                <input type="checkbox">路网图
+            </div>
+        </div>
+
+        <div class="form-group none">
+            <label>覆盖物</label>
+            <div class="checkboxs">
+                <input type="checkbox">底图
+                <input type="checkbox">路网
+                <input type="checkbox">poi
+            </div>
+        </div>
+
         <div class="form-group">
             <button class="btn btn-default" v-on:click="download()" id="btn_download">下载</button>
-            <button class="btn btn-default" v-on:click="status()" data-toggle="modal" href="#status">查看</button>
+            <button class="btn btn-default" v-on:click="reDownload()" id="btn_re_download">失败下载</button>
+            <button class="btn btn-default" v-on:click="status()" data-toggle="modal" href="#status">状态</button>
         </div>
     </div>
     <div class="modal fade" id="status" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -163,7 +194,11 @@
             var socket = io.connect("http://192.168.1.129:3000/tile");
             socket.on('status', (data) => {
                 data.startTime = new Date(data.startTime).toLocaleString();
-                if(data.endTime) {
+                if (data.total == 0) {
+                    data.status = '没有失败瓦片下载记录.';
+                    data.endTime = new Date(data.endTime).toLocaleString();
+                    enableDownloadBtn();
+                } else if (data.endTime) {
                     data.status = '瓦片已完成缓存.';
                     data.endTime = new Date(data.endTime).toLocaleString();
                     enableDownloadBtn();
@@ -223,7 +258,10 @@
                     downloadTiles(this.districtCube);
                 },
                 status: function (e) {
-                    
+
+                },
+                reDownload: function (e) {
+                    reDownloadTiles();
                 }
             }
         });
@@ -382,11 +420,25 @@
             }, 1000);
         }
 
+        /** 
+         * 加载失败缓存
+        */
+        function reDownloadTiles() {
+            disableDownloadBtn();
+            send('reCacheTiles', {date: new Date().getTime()});
+            setTimeout(() => {
+                $('#status').modal('show');
+            }, 1000);
+        }
+
         function disableDownloadBtn() {
             $('#btn_download').attr("disabled", true);
+            $('#btn_re_download').attr("disabled", true);
         }
+
         function enableDownloadBtn() {
             $('#btn_download').attr("disabled", false);
+            $('#btn_re_download').attr("disabled", false);
         }
     </script>
 

@@ -30,7 +30,7 @@ function createDownloadUrl(x, y, z, option) {
         size: '1',
         style: '7', //矢量地图
         scl: '1',
-        ltype: '7' //地图覆盖物: 底图+路网图+poi标注        
+        ltype: '3' //地图覆盖物: 底图+路网图
     }
 
     return constant.DOWNLOAD_URLS[Math.floor(Math.random() * 4)] +

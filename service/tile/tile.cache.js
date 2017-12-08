@@ -11,7 +11,13 @@ module.exports = () => {
          */
         reCacheTiles: async(reTiles, session) => {
             if (!reTiles || reTiles.length <= 0) {
-                session.socket.emit('msg', {msg: '没有失败记录...'});
+                session.socket.emit('status', {
+                    total: 0,
+                    completed: 0,
+                    failure: 0,
+                    startTime: new Date().getTime(),
+                    endTime: new Date().getTime()
+                });
                 return;
             }
             //下载状态报告
