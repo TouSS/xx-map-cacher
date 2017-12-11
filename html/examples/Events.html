@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>事件</title>
+    <link rel="stylesheet" href="../js/leaflet/leaflet.css" />
+    <script type="text/javascript" src="../js/leaflet/leaflet.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+        }
+
+        #mapContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mapContainer"></div>
+    <script type="text/javascript">
+        //创建map容器
+        var map = L.map('mapContainer', {
+            minZoom: 10,
+            maxZoom: 15
+        }).setView([30.266816, 120.065213], 12);
+        //添加map瓦片
+        L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
+            attribution: 'Imagery &copy; <a href="http://ditu.amap.com/">高德</a>',
+            maxZoom: 18,
+            id: 'map.hz'
+        }).addTo(map);
+
+        //点击事件
+        map.on('click', (e) => {
+            L.marker(e.latlng).addTo(map);
+        });
+
+        //设置显示边界        
+        var lb = L.latLng(28.940861, 118.145599),
+            rt = L.latLng(30.738294, 120.90454);
+        var bounds = L.latLngBounds(lb, rt);
+        map.setMaxBounds(bounds);
+    </script>
+</body>
+
+</html>

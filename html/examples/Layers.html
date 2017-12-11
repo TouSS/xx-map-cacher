@@ -1,0 +1,118 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>地图覆盖物, 点、线、面 ...</title>
+    <link rel="stylesheet" href="../js/leaflet/leaflet.css" />
+    <script type="text/javascript" src="../js/leaflet/leaflet.js"></script>
+    <link href="../js/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="../js/jQuery/jquery-3.2.1.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+        }
+
+        #mapContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+        }
+
+        #layers {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            z-index: 999;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mapContainer"></div>
+    <div id="layers">
+        <button class="btn btn-default" id="add_marker">添加点标注</button>
+        <button class="btn btn-default" id="add_polyline">添加路径标注</button>
+        <button class="btn btn-default" id="add_polygon">添加区域标注</button>
+        <button class="btn btn-default" id="add_circle">添加圆形区域标注</button>
+        <button class="btn btn-default" id="add_popup">添加信息窗体</button>
+        <button class="btn btn-default" id="add_tooltip">添加提示</button>
+    </div>
+    <script type="text/javascript">
+        //创建map容器
+        var map = L.map('mapContainer', {
+            minZoom: 10,
+            maxZoom: 15
+        }).setView([30.266816, 120.065213], 12);
+        //添加map瓦片
+        L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
+            attribution: 'Imagery &copy; <a href="http://ditu.amap.com/">高德</a>',
+            maxZoom: 18,
+            id: 'map.hz'
+        }).addTo(map);
+
+        //设置显示边界        
+        var lb = L.latLng(28.940861, 118.145599),
+            rt = L.latLng(30.738294, 120.90454);
+        var bounds = L.latLngBounds(lb, rt);
+        map.setMaxBounds(bounds);
+
+        //添加覆盖物
+        //点标注
+        $('#add_marker').click((e) => {
+            marker = L.marker([30.266816, 120.065213]).addTo(map);
+        });
+        //路径折线
+        $('#add_polyline').click((e) => {
+            var latlngs = [
+                [30.240086, 120.06031],
+                [30.262773, 120.09464],
+                [30.287828, 120.160303]
+            ];
+            var polyline = L.polyline(latlngs, {
+                color: 'blue'
+            }).addTo(map);
+            map.fitBounds(polyline.getBounds());
+
+        });
+        //区域标注
+        $('#add_polygon').click((e) => {
+            var latlngs = [
+                [30.246314, 120.04486],
+                [30.262625, 120.09086],
+                [30.280119, 120.085716],
+                [30.27774, 120.04795]
+            ];
+            var polygon = L.polygon(latlngs, {
+                color: 'blue'
+            }).addTo(map);
+            map.fitBounds(polygon.getBounds());
+        });
+        //圆形区域
+        $('#add_circle').click((e) => {
+            var circle = L.circle([30.242273, 120.054388], {
+                radius: 500
+            }).addTo(map);
+            map.fitBounds(circle.getBounds());
+        });
+        //信息窗体
+        $('#add_popup').click((e) => {
+            var latlng = L.latLng(30.266816, 120.065213);
+            var popup = L.popup()
+                .setLatLng(latlng)
+                .setContent('<p>Hello world!<br />This is a nice popup.</p>')
+                .openOn(map);
+        });
+        $('#add_tooltip').click((e) => {
+            marker.bindTooltip(marker.getLatLng().toString());
+        });
+    </script>
+</body>
+
+</html>

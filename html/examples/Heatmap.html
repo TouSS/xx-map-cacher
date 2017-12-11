@@ -1,0 +1,134 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>热力图</title>
+    <link rel="stylesheet" href="../js/leaflet/leaflet.css" />
+    <script type="text/javascript" src="../js/leaflet/leaflet.js"></script>
+    <!--使用热力图时需要引入 heatmap.js 和 leaflet-heatmap.js -->
+    <script type="text/javascript" src="../js/leaflet/heatmap.js"></script>
+    <script type="text/javascript" src="../js/leaflet/leaflet-heatmap.js"></script>
+    <style>
+        body {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+        }
+
+        #mapContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mapContainer"></div>
+    <script type="text/javascript">
+        //创建map容器
+        var map = L.map('mapContainer', {
+            //minZoom: 10,
+            maxZoom: 15
+        }).setView([30.266816, 120.065213], 12);
+        //添加map瓦片
+        L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
+            attribution: 'Imagery &copy; <a href="http://ditu.amap.com/">高德</a>',
+            maxZoom: 18,
+            id: 'map.hz'
+        }).addTo(map);
+
+        //设置显示边界        
+        var lb = L.latLng(28.940861, 118.145599),
+            rt = L.latLng(30.738294, 120.90454);
+        var bounds = L.latLngBounds(lb, rt);
+        map.setMaxBounds(bounds);
+
+        //比例尺
+        L.control.scale().addTo(map);
+
+        //热力图
+        var testData = {
+            max: 10,
+            data: [{
+                lat: 30.267666,
+                lng: 120.063743,
+                count: 5
+            }, {
+                lat: 30.26974,
+                lng: 120.0764,
+                count: 8
+            }, {
+                lat: 30.26529,
+                lng: 120.03971,
+                count: 2
+            }, {
+                lat: 30.28753,
+                lng: 120.06237,
+                count: 4
+            }]
+        };
+
+        var heatmap = new HeatmapOverlay({
+            // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+            // if scaleRadius is false it will be the constant radius used in pixels
+            radius: 50, //热力圈大小，scaleRadius为true会根据地图缩放变化，scaleRadius为false时为设定值的像素大小 -- 推荐false
+            maxOpacity: .8, //热力圈透明度 0 - 1
+            // scales the radius based on map zoom
+            scaleRadius: false,
+            // if set to false the heatmap uses the global maximum for colorization
+            // if activated: uses the data maximum within the current map boundaries 
+            //   (there will always be a red spot with useLocalExtremas true)
+            useLocalExtrema: true,
+            // which field name in your data represents the latitude - default "lat"
+            latField: 'lat', //lat字段名称，默认lat
+            // which field name in your data represents the longitude - default "lng"
+            lngField: 'lng', //lng 字段名称，默认lng
+            // which field name in your data represents the data value - default "value"
+            valueField: 'count', //value字段名称，默认value
+            gradient: { //自定义颜色变化，如果不设置则使用默认颜色渐变
+                '.25': 'green',
+                '.5': 'blue',
+                '.8': 'red',
+                '.95': 'white'
+            }
+        }).addTo(map);
+        heatmap.setData(testData);
+    </script>
+</body>
+
+</html>
+<!--
+注： leafet-heatmap是基于heatmap.js
+以下为heatmap.js的属性，可作为参考
+Possible configuration properties:
+container (DOMNode) *required* 
+    A DOM node where the heatmap canvas should be appended (heatmap will adapt to the node's size)
+backgroundColor (string) *optional*
+    A background color string in form of hexcode, color name, or rgb(a)
+gradient (object) *optional*
+    An object that represents the gradient (syntax: number string [0,1] : color string), check out the example 
+radius (number) *optional*
+    The radius each datapoint will have (if not specified on the datapoint itself)
+opacity (number) [0,1] *optional* default = .6
+    A global opacity for the whole heatmap. This overrides maxOpacity and minOpacity if set!
+maxOpacity (number) [0,1] *optional*
+    The maximal opacity the highest value in the heatmap will have. (will be overridden if opacity set)
+minOpacity(number) [0,1] *optional*
+    The minimum opacity the lowest value in the heatmap will have (will be overridden if opacity set)
+onExtremaChange function callback
+    Pass a callback to receive extrema change updates. Useful for DOM legends.
+blur (number) [0,1] *optional* default = 0.85
+    The blur factor that will be applied to all datapoints. The higher the blur factor is, the smoother the gradients will be
+xField (string) *optional* default = "x"
+    The property name of your x coordinate in a datapoint
+yField (string) *optional* default = "y"
+    The property name of your y coordinate in a datapoint
+valueField (string) *optional* default = "value"
+    The property name of your y coordinate in a datapoint
+-->
