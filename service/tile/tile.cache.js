@@ -60,9 +60,7 @@ module.exports = () => {
                         await failures._save(conn, tile);
                     } catch (error) {
                         logger.error(error);
-                        sessionManager.error(session, {
-                            desc: '系统出错, 请稍后再试.'
-                        });
+                        sessionManager.error(session, error);
                     }
                 }
 
@@ -147,9 +145,7 @@ module.exports = () => {
                             });
                         } catch (error) {
                             logger.error(error);
-                            sessionManager.error(session, {
-                                desc: '系统出错, 请稍后再试.'
-                            });
+                            sessionManager.error(session, error);
                         }
                     }
                     //计数器累加，每10次报告状态

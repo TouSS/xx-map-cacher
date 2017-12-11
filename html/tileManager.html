@@ -217,7 +217,7 @@
                 alert(data.msg);
             });
             socket.on('error', (error) => {
-                alert(error.desc);
+                alert('系统出错, 请稍后再试.');
             });
             return socket;
         }
