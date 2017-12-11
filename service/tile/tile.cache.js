@@ -1,6 +1,7 @@
 const util = require('../tile/tile.utils')();
 const logger = require('../logger');
 const db = require('../db/db.conn')();
+const sessionManager = require('../socket/session.tile');
 module.exports = () => {
     const tiles = require('../db/db.tile')();
     const failures = require('../db/db.tile.failure')();
@@ -29,12 +30,7 @@ module.exports = () => {
             session.counter = 0
 
             //报告状态
-            session.socket.emit('status', {
-                total: session.total,
-                completed: session.completed,
-                failure: session.failure,
-                startTime: session.startTime
-            });
+            sessionManager.report(session);
 
             let tile, params, add_date, update_date;
             let conn = db.getConn();
@@ -56,22 +52,25 @@ module.exports = () => {
                         throw new Error('500: download tile failed .');
                     }
                 } catch (error) {
-                    logger.error(error);
-                    await failures._save(conn, tile);
-                    //缓存失败计数
-                    session.failure++;
+                    try {
+                        //缓存失败计数
+                        session.failure++;
+
+                        logger.error(error);
+                        await failures._save(conn, tile);
+                    } catch (error) {
+                        logger.error(error);
+                        sessionManager.error(session, {
+                            desc: '系统出错, 请稍后再试.'
+                        });
+                    }
                 }
 
                 //计数器累加，每10次报告状态
                 session.counter++;
                 if (session.counter >= 10) {
                     //报告状态
-                    session.socket.emit('status', {
-                        total: session.total,
-                        completed: session.completed,
-                        failure: session.failure,
-                        startTime: session.startTime
-                    });
+                    sessionManager.report(session);
                     session.counter = 0;
                 }
             }
@@ -79,13 +78,10 @@ module.exports = () => {
 
             //缓存完成
             session.endTime = new Date().getTime();
-            session.socket.emit('status', {
-                total: session.total,
-                completed: session.completed,
-                failure: session.failure,
-                startTime: session.startTime,
-                endTime: new Date().getTime()
-            });
+            sessionManager.report(session);
+
+            //缓存结束，移除session
+            sessionManager.remove(session);
 
         },
         /**
@@ -102,12 +98,7 @@ module.exports = () => {
             session.counter = 0
 
             //报告状态
-            session.socket.emit('status', {
-                total: session.total,
-                completed: session.completed,
-                failure: session.failure,
-                startTime: session.startTime
-            });
+            sessionManager.report(session);
 
             let tile, params;
             let conn = db.getConn();
@@ -136,34 +127,36 @@ module.exports = () => {
                             throw new Error('500: download tile failed .');
                         }
                     } catch (error) {
-                        //缓存失败计数
-                        session.failure++;
-                        //缓存瓦片失败处理,保存错误记录
-                        logger.error(error);
-                        
-                        await failures._save(conn, {
-                            x: i,
-                            y: j,
-                            z: districtCube.zoom,
-                            adcode: districtCube.adcode,
-                            district: districtCube.name,
-                            failed_times: 1,
-                            failed_reason: '' + error,
-                            add_date: add_date,
-                            update_date: update_date
-                        });
-                        
+                        //保存失败记录
+                        try {
+                            //缓存失败计数
+                            session.failure++;
+                            //缓存瓦片失败处理,保存错误记录
+                            logger.error(error);
+
+                            await failures._save(conn, {
+                                x: i,
+                                y: j,
+                                z: districtCube.zoom,
+                                adcode: districtCube.adcode,
+                                district: districtCube.name,
+                                failed_times: 1,
+                                failed_reason: '' + error,
+                                add_date: add_date,
+                                update_date: update_date
+                            });
+                        } catch (error) {
+                            logger.error(error);
+                            sessionManager.error(session, {
+                                desc: '系统出错, 请稍后再试.'
+                            });
+                        }
                     }
                     //计数器累加，每10次报告状态
                     session.counter++;
                     if (session.counter >= 10) {
                         //报告状态
-                        session.socket.emit('status', {
-                            total: session.total,
-                            completed: session.completed,
-                            failure: session.failure,
-                            startTime: session.startTime
-                        });
+                        sessionManager.report(session);
                         session.counter = 0;
                     }
                 }
@@ -172,13 +165,10 @@ module.exports = () => {
 
             //缓存完成
             session.endTime = new Date().getTime();
-            session.socket.emit('status', {
-                total: session.total,
-                completed: session.completed,
-                failure: session.failure,
-                startTime: session.startTime,
-                endTime: new Date().getTime()
-            });
+            sessionManager.report(session);
+
+            //缓存结束，移除session
+            sessionManager.remove(session);
         }
     }
 }

@@ -6,8 +6,10 @@ const failures = require('../db/db.tile.failure')();
 module.exports = (httpServer) => {
     let server = require('socket.io')(httpServer);
     server.of('/tile').on('connection', (socket) => {
-        let session = sessionManager.get(socket.id);
-        session.address = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+        let id = socket.id;
+        let address = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+        let session = sessionManager.get(address);
+        session.address = address;
         session.socket = socket;
 
         logger.info('Accept a connection from ' + session.address);
@@ -19,12 +21,12 @@ module.exports = (httpServer) => {
             cache.reCacheTiles(rows, session);
         });
         socket.on('status', (data) => {
-            socket.emit('status', {id: session.id});
+            sessionManager.report(session);
         });
 
         socket.on('disconnect', (reason) => {
             logger.info('connection from ' + session.address + ' has closed because ' + reason);
-            sessionManager.remove(session.id);
+            sessionManager.offline(session);
         });
     });
     logger.info('地图瓦片缓存交互socket服务器已处于监听状态...');

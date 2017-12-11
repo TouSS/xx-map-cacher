@@ -193,23 +193,31 @@
         function initSocket() {
             var socket = io.connect("http://192.168.1.129:3000/tile");
             socket.on('status', (data) => {
-                data.startTime = new Date(data.startTime).toLocaleString();
+                
                 if (data.total == 0) {
                     data.status = '没有失败瓦片下载记录.';
+                    data.startTime = new Date(data.startTime).toLocaleString();
                     data.endTime = new Date(data.endTime).toLocaleString();
                     enableDownloadBtn();
                 } else if (data.endTime) {
                     data.status = '瓦片已完成缓存.';
+                    data.startTime = new Date(data.startTime).toLocaleString();
                     data.endTime = new Date(data.endTime).toLocaleString();
                     enableDownloadBtn();
-                } else {
+                } else if(data.startTime) {
+                    data.startTime = new Date(data.startTime).toLocaleString();
                     data.status = '瓦片正在缓存...';
                     data.endTime = '未结束';
+                } else {
+                    data.status = '没有下载任务 !!!';
                 }
                 status.status = data;
             });
             socket.on('msg', (data) => {
                 alert(data.msg);
+            });
+            socket.on('error', (error) => {
+                alert(error.desc);
             });
             return socket;
         }
@@ -258,7 +266,7 @@
                     downloadTiles(this.districtCube);
                 },
                 status: function (e) {
-
+                    send('status', {date: new Date().getTime()})
                 },
                 reDownload: function (e) {
                     reDownloadTiles();

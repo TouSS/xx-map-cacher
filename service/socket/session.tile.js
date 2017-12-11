@@ -5,7 +5,9 @@ let sessions = {};
  * @param {*} id 
  */
 function createSession(id) {
-    sessions[id] = {id: id};
+    sessions[id] = {
+        id: id
+    };
     return sessions[id];
 }
 
@@ -15,7 +17,7 @@ function createSession(id) {
  */
 exports.get = (id) => {
     let session = sessions[id];
-    if(!session) {
+    if (!session) {
         session = createSession(id);
     }
     return session;
@@ -23,8 +25,43 @@ exports.get = (id) => {
 
 /**
  * 移除session
- * @param {*} id 
+ * @param {*} session
  */
-exports.remove = (id) => {
-    delete sessions[id];
+exports.remove = (session) => {
+    delete sessions[session.id];
+}
+
+/**
+ * 下线session
+ * @param {*} session 
+ */
+exports.offline = (session) => {
+    delete session.socket;
+}
+
+/**
+ * 报告状态
+ * @param {*} session 
+ */
+exports.report = (session) => {
+    if (session.socket) {
+        session.socket.emit('status', {
+            total: session.total,
+            completed: session.completed,
+            failure: session.failure,
+            startTime: session.startTime,
+            endTime: session.endTime
+        });
+    }
+}
+
+/**
+ * 报告错误
+ * @param {*} session 
+ * @param {*} error 
+ */
+exports.error = (session, error) => {
+    if (session.socket) {
+        session.socket.emit('error', error);
+    }
 }

@@ -29,9 +29,9 @@
     <div id="mapContainer"></div>
     <script type="text/javascript">
         //创建map容器
-        var map = L.map('mapContainer',{
-            minZoom:9,
-            maxZoom:15
+        var map = L.map('mapContainer', {
+            minZoom: 9,
+            maxZoom: 15
         }).setView([30.266816, 120.065213], 12);
         //添加map瓦片
         L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
@@ -48,6 +48,13 @@
             console.log(e.latlng);
             marker.setLatLng(e.latlng);
         })
+
+        //设置显示边界
+        
+        var lb = L.latLng(28.940861, 118.145599),
+            rt = L.latLng(30.738294, 120.90454);
+        var bounds = L.latLngBounds(lb, rt);
+        map.setMaxBounds(bounds);
     </script>
 </body>
 
