@@ -21,11 +21,12 @@ module.exports = () => {
                 });
                 return;
             }
-            //下载状态报告
+            //下载状态初始化
             session.total = reTiles.length;;
             session.completed = 0;
             session.failure = 0;
             session.startTime = new Date().getTime();
+            delete session.endTime;
             //初始化计数器
             session.counter = 0
 
@@ -87,11 +88,12 @@ module.exports = () => {
          */
         cacheTiles: async(districtCube, session) => {
             let cutXY = util.calcTiles(districtCube.cut.wn, districtCube.cut.es, districtCube.zoom);
-            //下载状态报告
+            //下载状态初始化
             session.total = (cutXY.end[0] - cutXY.start[0] + 1) * (cutXY.end[1] - cutXY.start[1] + 1);
             session.completed = 0;
             session.failure = 0;
             session.startTime = new Date().getTime();
+            delete session.endTime;
             //初始化计数器
             session.counter = 0
 

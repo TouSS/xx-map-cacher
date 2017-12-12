@@ -21,7 +21,7 @@ tileRouter.get('/tile/:x/:y/:z', async (ctx, next) => {
 
 })
 .get('/', (ctx, next) => {
-    ctx.redirect('/map.html');
+    ctx.redirect('/examples/Map.html');
 });
 
 module.exports = tileRouter.routes();
