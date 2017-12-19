@@ -14,6 +14,12 @@ onerror(app, {
     redirect: '/500.html'
 });
 
+//收到请求
+app.use(async(ctx, next) => {
+    logger.info('HTTP/' + ctx.method + ':' + ctx.url);
+    await next();
+});
+
 //静态资源
 app.use(html(__dirname + '/html'));
 //参数绑定
