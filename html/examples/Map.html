@@ -49,7 +49,11 @@
         map.setMaxBounds(bounds);
 
         //比例尺
-        L.control.scale().addTo(map);
+        L.control.scale({
+            //比例尺显示类型
+            metric: true, //米/千米(m/km)
+            imperial: false //码/英里(mi/ft)
+        }).addTo(map);
         //放大缩小
         L.control.zoom({
             zoomInText: '+',

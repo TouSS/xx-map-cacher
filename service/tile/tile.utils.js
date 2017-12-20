@@ -1,5 +1,6 @@
 const http = require('http');
 const fs = require('fs');
+const Jimp = require('jimp');
 
 const constant = require('../constant');
 
@@ -58,8 +59,18 @@ module.exports = () => {
         /**
          * 获取默认瓦片
          */
-        getBlankTile: () => {
-            return fs.readFileSync(process.cwd() + constant.TILE_NO_PNG);
+        getBlankTile: async(x, y, z) => {
+            //return fs.readFileSync(process.cwd() + constant.TILE_NO_PNG);
+            //添加坐标和缩放比
+            let img = await Jimp.read(process.cwd() + constant.TILE_NO_PNG);
+            let font = await Jimp.loadFont(Jimp.FONT_SANS_16_BLACK);
+            img.print(font, 5, 5, '( ' + x + ', ' + y + ',' + z + ' )');
+            return new Promise((resolve, reject) => {
+                img.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
+                    if(err) return reject(err);
+                    resolve(buffer);
+                });
+            });
         },
         /**
          * 下载地图瓦片

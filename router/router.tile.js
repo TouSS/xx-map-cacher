@@ -13,7 +13,7 @@ tileRouter.get('/tile/:x/:y/:z', async (ctx, next) => {
         ctx.res.write(row.tile,"binary");
         ctx.res.end();
     } else {
-        ctx.body = tiles.default();
+        ctx.body = await tiles.default(ctx.params.x, ctx.params.y, ctx.params.z);
     }
 })
 //缓存失败地图瓦片

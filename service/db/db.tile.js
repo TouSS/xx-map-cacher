@@ -64,8 +64,8 @@ module.exports = () => {
         /**
          * 未缓存默认图片
          */
-        default: () => {
-            return util.getBlankTile();
+        default: (x, y, z) => {
+            return util.getBlankTile(x, y, z);
         }
     }
 }
