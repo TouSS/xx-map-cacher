@@ -33,7 +33,7 @@
             minZoom: 10,
             maxZoom: 16,
             zoomControl: false
-        }).setView([30.266816, 120.065213], 12);
+        }).setView([29.566158, 106.55109], 10);
         //添加map瓦片, L.map, L.tileLayer 都可以设置最大最小缩放等级。
         L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
             attribution: 'Imagery &copy; <a href="http://ditu.amap.com/">高德</a>',
@@ -43,10 +43,10 @@
         }).addTo(map);
 
         //设置显示边界        
-        var lb = L.latLng(28.940861, 118.145599),
-            rt = L.latLng(30.738294, 120.90454);
-        var bounds = L.latLngBounds(lb, rt);
-        map.setMaxBounds(bounds);
+        // var lb = L.latLng(28.940861, 118.145599),
+        //     rt = L.latLng(30.738294, 120.90454);
+        // var bounds = L.latLngBounds(lb, rt);
+        // map.setMaxBounds(bounds);
 
         //比例尺
         L.control.scale({

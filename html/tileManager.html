@@ -191,7 +191,7 @@
         var socket = initSocket();
         //连接服务器
         function initSocket() {
-            var socket = io.connect("http://192.168.1.129:3000/tile");
+            var socket = io.connect("http://localhost:3000/tile");
             socket.on('status', (data) => {
                 
                 if (data.total == 0) {
@@ -211,7 +211,7 @@
                 } else {
                     data.status = '没有下载任务 !!!';
                 }
-                status.status = data;
+                state.status = data;
             });
             socket.on('msg', (data) => {
                 alert(data.msg);
@@ -274,7 +274,7 @@
             }
         });
 
-        var status = new Vue({
+        var state = new Vue({
             el: '#status',
             data: {
                 status: {
