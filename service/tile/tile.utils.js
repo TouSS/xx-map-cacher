@@ -26,12 +26,22 @@ function LngLat2XY(lng, lat, zoom) {
  * @param {*} option 
  */
 function createDownloadUrl(x, y, z, option) {
+
+    /*
+        lang：语言 （中文：zh_cn，英文：en）
+        style：地图类型（6：地图影像，7：矢量地图，8：路网图）
+        ltype：地图覆盖物（1 - 7 分别为各种覆盖物，1：地图底图，2：路网图，3：底图+路网图，4：poi标注，5：底图+poi标注，6：路网图+poi标注，7：底图+路网图+poi标注），注：当用8取模为1 - 7时同样适用 
+        size：未知，默认 1
+        scl：未知，默认 1
+
+        说明: 地图类型为矢量地图时, 此时如果下载带标注的瓦片, 标注内容会明显放大且有缺失. 解决办法: 选择地图类型为路网图去单独下载标注, 然后在将地图与标注合并.
+    */
     option = option || {
         lang: 'zh_cn',
         size: '1',
         style: '7', //矢量地图
         scl: '1',
-        ltype: '3' //地图覆盖物: 底图+路网图
+        ltype: '7' //地图覆盖物: 底图+路网图
     }
 
     return constant.DOWNLOAD_URLS[Math.floor(Math.random() * 4)] +
