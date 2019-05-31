@@ -30,23 +30,30 @@
     <script type="text/javascript">
         //创建map容器
         var map = L.map('mapContainer', {
-            minZoom: 10,
-            maxZoom: 16,
+            minZoom: 8,
+            maxZoom: 18,
             zoomControl: false
         }).setView([29.566158, 106.55109], 10);
         //添加map瓦片, L.map, L.tileLayer 都可以设置最大最小缩放等级。
         L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
             attribution: 'Imagery &copy; <a href="http://ditu.amap.com/">高德</a>',
-            minZoom: 10,
+            minZoom: 8,
             maxZoom: 18,
-            id: 'map.hz'
+            id: 'map.cq.01'
+        }).addTo(map);
+        // 多个图层叠加覆盖，列如：底图+路网+标注
+        L.tileLayer('http://localhost:3000/tile/{x}/{y}/{z}', {
+            attribution: 'Imagery &copy; <a href="http://ditu.amap.com/">高德</a>',
+            minZoom: 8,
+            maxZoom: 18,
+            id: 'map.cq.02'
         }).addTo(map);
 
         //设置显示边界        
-        // var lb = L.latLng(28.940861, 118.145599),
-        //     rt = L.latLng(30.738294, 120.90454);
-        // var bounds = L.latLngBounds(lb, rt);
-        // map.setMaxBounds(bounds);
+        /*var lb = L.latLng(28.940861, 118.145599),
+            rt = L.latLng(30.738294, 120.90454);
+        var bounds = L.latLngBounds(lb, rt);
+        map.setMaxBounds(bounds);*/
 
         //比例尺
         L.control.scale({
